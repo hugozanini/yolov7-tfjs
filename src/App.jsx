@@ -75,7 +75,7 @@ const App = () => {
 
   return (
     <div className="App">
-      <h2>Object Detection Using YOLOv5 & Tensorflow.js</h2>
+      <h2>Object Detection Using YOLOv7 & Tensorflow.js</h2>
       {loading.loading ? (
         <Loader>Loading model... {(loading.progress * 100).toFixed(2)}%</Loader>
       ) : (
