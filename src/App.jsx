@@ -117,7 +117,9 @@ const App = () => {
    * @param {tf.GraphModel} model loaded YOLOv5 tensorflow.js model
    */
   const preprocess = (source) =>{
+    //TODO: I`m resizing the image and not using the pad back when writing it. Pls fix
     const img = tf.browser.fromPixels(source);
+    console.log("img shape: ", img.shape);
     // padding image to square => [n, m] to [n, n], n > m
     const [h, w] = img.shape.slice(0, 2); // get source width and height
     const maxSize = Math.max(w, h); // get max size
@@ -132,8 +134,6 @@ const App = () => {
 
     return [xratio, yratio]
   }
-  
-
 
   const detectFrame = async (model) => {
     tf.engine().startScope();
@@ -141,66 +141,41 @@ const App = () => {
     const [xratio, yratio] = preprocess(videoRef.current);
     // console.log("xRatio: ", xratio);
     // console.log("yRatio: ", yratio);
+    //TODO: Maybe I have to pad the image before send it: https://github.com/Hyuto/yolov5-tfjs/blob/82b0777ac629799c3daebc35cc93ea17f5633d18/src/utils/detect.js#L11
     const input = tf.tidy(() => {
       const img = tf.image
                   .resizeBilinear(tf.browser.fromPixels(videoRef.current), [640, 640])
                   .div(255.0)
                   .transpose([2, 0, 1])
                   .expandDims(0);
+      //console.log("img shape: ", img.shape); // [1, 3, 640, 640]
       return img
     });
 
     await model.executeAsync(input).then((res) => {
 
       //TODO: Finish implementation of the non_max_suppression 
-      //console.log('res.shape: ', res.shape);
-      const res_lenght = res.shape[1];
-      //console.log('res_lenght: ', res_lenght);
       res = res.arraySync()[0];
-      //console.log('res: ', res);
-      //Non maximum implementation
+      //Filtering only detections with a confidence higher than the threshold
       const conf_thres = 0.25;
-      //console.log('Filtering...');
       res = res.filter(dataRow => dataRow[4]>=conf_thres);
-      //console.log('filtered: ', res);
-
-      //Settings
-      // const [min_wh, max_wh] = [2,4096]; // (pixels) minimum and maximum box width and height
-      // const max_det = 300;  // maximum number of detections per image
-      // const max_nms = 30000;  // maximum number of boxes into torchvision.ops.nms()
-      // const time_limit = 10.0;  // seconds to quit after
-      // const redundant = True;  // require redundant detections
-      // //const multi_label &= nc > 1  // multiple labels per box (adds 0.5ms/img)
-      // const merge = False;  // use merge-NMS
+      //Here the non_max_supression is not applied yet. Still multiple bboxes for the same detection
 
       var boxes = [];
       var class_detect = [];
       var scores = [];
-      res.forEach(myFunction);
-      function myFunction(value, index, array){
-        const box = value.slice(0,4);
-        boxes.push(box);
-        
-        const cls_detections = value.slice(5, 85);
-       // console.log('cls_detection_lenght: ', cls_detections.length);
+      res.forEach(process_pred);
+
+      function process_pred(res){
+        const box = res.slice(0,4);
+        boxes.push(box);      
+        const cls_detections = res.slice(5, 85);
         var max_score_index = cls_detections.reduce((imax, x, i, arr) => x > arr[imax] ? i : imax, 0);
         class_detect.push(max_score_index);
-        scores.push(value[max_score_index + 5]);
-        //console.log('Class: ', labels[max_score_index]);
-        
-        // console.log('value: ', value); //the prediction I'm iterating
-        // console.log('index: ', index); //the index
-        // console.log('array: ', array); //All the predictions
-        //console.log('---------------');
+        scores.push(res[max_score_index + 5]);
       }
-      console.log("boxes: ", boxes);
-      console.log("scores: ", scores);
-      console.log("class_detect: ", class_detect);
 
-
-      //console.log('res[0].shape: ', res[0].shape);
-      //console.log('dims 1: ', res.arraySync()[0].lenght);
-      const [boxes_data, scores_data, classes_data] = [0,0,0];//non_max_suppression (res, canvasRef, threshold);
+      //Rendering boxes
       renderBoxes(canvasRef, threshold, boxes, scores, class_detect, [xratio, yratio]);
 
       tf.dispose(res);
