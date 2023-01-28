@@ -17,10 +17,7 @@ src="https://raw.githubusercontent.com/hugozanini/realtime-sku-detection/main/gi
 </a>
 </body
 <br>
-
- 
- See more examples [here](https://www.youtube.com/watch?v=Hk26F6etrpY&ab_channel=HugoZanini).
-
+ See more examples [here](https://youtu.be/pBWIg80xlXE).
 <br> 
 
 ## Acknowledgment
@@ -28,7 +25,6 @@ src="https://raw.githubusercontent.com/hugozanini/realtime-sku-detection/main/gi
 
 
 <img align="left" width="200" height="183" src="https://raw.githubusercontent.com/hugozanini/yolov7-tfjs/organizing-repo/git-media/Experts_Stickers_05.gif">This code was developed under the financial assistance of the [Google Developers Group](https://developers.google.com/community/gdg),  which provided all the computational resources for training and converting the models.
-
 <br> 
 
 ## References
