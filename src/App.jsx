@@ -4,12 +4,21 @@ import "@tensorflow/tfjs-backend-webgl"; // set backend to webgl
 import Loader from "./components/loader";
 import { Webcam } from "./utils/webcam";
 import { renderBoxes } from "./utils/renderBox";
+import { non_max_suppression } from "./utils/nonMaxSuppression";
 import "./style/App.css";
 
 /**
  * Function to detect image.
  * @param {HTMLCanvasElement} canvasRef canvas reference
  */
+
+function shortenedCol(arrayofarray, indexlist) {
+  return arrayofarray.map(function (array) {
+      return indexlist.map(function (idx) {
+          return array[idx];
+      });
+  });
+}
 
 const App = () => {
   const [loading, setLoading] = useState({ loading: true, progress: 0 });
@@ -39,34 +48,12 @@ const App = () => {
     await model.executeAsync(input).then((res) => {
 
       res = res.arraySync()[0];
-      //Filtering only detections > conf_thres
-      const conf_thres = 0.25;
-      res = res.filter(dataRow => dataRow[4]>=conf_thres);
 
-      var boxes = [];
-      var class_detect = [];
-      var scores = [];
-      res.forEach(process_pred);
+      var detections = non_max_suppression(res);
+      const boxes =  shortenedCol(detections, [0,1,2,3]);
+      const scores = shortenedCol(detections, [4]);
+      const class_detect = shortenedCol(detections, [5]);
 
-      function process_pred(res){
-        var box = res.slice(0,4);
-
-        //non_max_suppression
-        const cls_detections = res.slice(5, 85);
-        var max_score_index = cls_detections.reduce((imax, x, i, arr) => x > arr[imax] ? i : imax, 0);
-        const search_index = class_detect.indexOf(max_score_index);
-        if (search_index != -1){
-          if(scores[search_index] < res[max_score_index + 5]){
-            boxes[search_index] = box;
-            scores[search_index] = res[max_score_index + 5];
-          }
-        }
-        else{
-          boxes.push(box)
-          class_detect.push(max_score_index);
-          scores.push(res[max_score_index + 5]);
-        }
-      }
       renderBoxes(canvasRef, threshold, boxes, scores, class_detect);
       tf.dispose(res);
     });
