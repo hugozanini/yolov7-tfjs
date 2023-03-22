@@ -26,7 +26,7 @@ const App = () => {
   const canvasRef = useRef(null);
   const webcam = new Webcam();
   // configs
-  const modelName = "yolov7";
+  const modelName = "stockout";
   const threshold = 0.80;
   /**
    * Function to detect every frame loaded from webcam in video tag.
