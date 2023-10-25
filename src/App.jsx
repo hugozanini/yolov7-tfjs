@@ -21,9 +21,11 @@ function shortenedCol(arrayofarray, indexlist) {
 }
 
 const App = () => {
+  let results;
   const [loading, setLoading] = useState({ loading: true, progress: 0 });
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const canvasRef2 = useRef(null);
   const webcam = new Webcam();
   // configs
   const modelName = "yolov7";
@@ -54,7 +56,9 @@ const App = () => {
       const scores = shortenedCol(detections, [4]);
       const class_detect = shortenedCol(detections, [5]);
 
-      renderBoxes(canvasRef, threshold, boxes, scores, class_detect);
+      results = renderBoxes(canvasRef, canvasRef2, threshold, boxes, scores, class_detect);
+      // console.log(...class_detect)
+      // console.log(results)
       tf.dispose(res);
     });
 
@@ -83,7 +87,6 @@ const App = () => {
 
   return (
     <div className="App">
-      <h2>Object Detection Using YOLOv7 & Tensorflow.js</h2>
       {loading.loading ? (
         <Loader>Loading model... {(loading.progress * 100).toFixed(2)}%</Loader>
       ) : (
@@ -93,8 +96,9 @@ const App = () => {
       <div className="content">
         <video autoPlay playsInline muted ref={videoRef} id="frame"
         />
-        <canvas width={640} height={640} ref={canvasRef} />
+        <canvas width={640} height={640} ref={canvasRef} />        
       </div>
+      <p><canvas  width={200} height={200} ref={canvasRef2} /></p>
     </div>
   );
 };

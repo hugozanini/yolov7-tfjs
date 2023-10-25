@@ -10,17 +10,21 @@ function xywh2xyxy(x){
   return y;
 }
 
-export const renderBoxes = (canvasRef, threshold, boxes_data, scores_data, classes_data) => {
+export const renderBoxes = (canvasRef, canvasRef2, threshold, boxes_data, scores_data, classes_data) => {
 
   const ctx = canvasRef.current.getContext("2d");
+  const ctx2 = canvasRef2.current.getContext("2d");
 
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // clean canvas
+  ctx2.clearRect(0, 0, ctx2.canvas.width, ctx2.canvas.height)
 
   // font configs
   const font = "18px sans-serif";
   ctx.font = font;
   ctx.textBaseline = "top";
 
+  let klassAndCount;
+  let predsCount = {};
   for (let i = 0; i < scores_data.length; ++i) {
     //console.log('scores_data[i]: ', scores_data[i])
     if (scores_data[i] > threshold) {
@@ -46,6 +50,18 @@ export const renderBoxes = (canvasRef, threshold, boxes_data, scores_data, class
       // Draw labels
       ctx.fillStyle = "#ffffff";
       ctx.fillText(klass + " - " + score + "%", x1 - 1, y1 - (textHeight + 2));
-    }
+
+      if (klass in predsCount) {
+        predsCount[klass]++;
+      } else {
+        predsCount[klass] = 1;
+      }
+    }           
   }
+  let y = 50;
+  for (const [klass, count] of Object.entries(predsCount)) {   
+    ctx2.font = "14px Arial";
+    ctx2.fillText(`${klass}: ${count}`, 10, y);  
+    y += 10; 
+  }  
 };
