@@ -274,11 +274,6 @@ const App = () => {
         </div>
         
         <div className="header-right">
-          <div className={`header-badge ${loading.loading ? "loading" : ""}`}>
-            <span className={`status-indicator-dot pulse ${loading.loading ? "warning" : "success"}`}></span>
-            {loading.loading ? "Loading Model..." : "WebGL Accelerated"}
-          </div>
-          
           <button
             className="theme-toggle-btn"
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
