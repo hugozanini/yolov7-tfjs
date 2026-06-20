@@ -1,3 +1,22 @@
+:root {
+  /* Color Palette (Gemini Dark Core & Material 3) */
+  --bg-canvas: #131314;
+  --surface-container-low: #1E1F20;
+  --surface-container: #282A2D;
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --text-primary: #E3E3E3;
+  --text-secondary: #C4C7C5;
+  --text-muted: #8E918F;
+  --gemini-spark: linear-gradient(135deg, #7A9FE6 0%, #AEC5EB 30%, #C5A3E8 60%, #F5B0C2 100%);
+  --primary: #A8C7FA;
+  --error: #F2B8B5;
+  --success: #C4EED0;
+  
+  /* Fonts */
+  --font-sans: 'Outfit', 'Google Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -7,14 +26,34 @@
 body {
   width: 100%;
   min-height: 100vh;
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: radial-gradient(circle at top left, #0e111d 0%, #06070c 100%);
-  color: #f8fafc;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
   overflow-x: hidden;
 }
 
 code, pre {
-  font-family: 'JetBrains Mono', source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-family: var(--font-mono);
+}
+
+/* Smooth custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-canvas);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface-container);
+  border-radius: 999px;
+  border: 2px solid var(--bg-canvas);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }

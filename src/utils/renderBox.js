@@ -1,6 +1,16 @@
 import labels from "./labels.json";
 
 /**
+ * Helper to convert HEX to RGBA.
+ */
+const hexToRgba = (hex, opacity) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+};
+
+/**
  * Render bounding boxes on canvas.
  * @param {React.MutableRefObject} canvasRef Canvas reference
  * @param {Float32Array} boxes Flat array of [x1, y1, x2, y2]
@@ -17,23 +27,21 @@ export const renderBoxes = (canvasRef, boxes, scores, classes) => {
 
   // Font styling
   const fontSize = 14;
-  ctx.font = `600 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+  ctx.font = `600 ${fontSize}px Google Sans, Outfit, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
   ctx.textBaseline = "top";
 
-  // Modern vibrant color palette (system colors)
+  // Softer palette of pastel-like M3 system tones for standard classes
   const colors = [
-    "#FF3B30", // Red
-    "#FF9500", // Orange
-    "#FFCC00", // Yellow
-    "#34C759", // Green
-    "#00C7BE", // Teal
-    "#30B0C7", // Cyan
-    "#32ADE6", // Light Blue
-    "#007AFF", // Blue
-    "#5856D6", // Purple
-    "#AF52DE", // Indigo
-    "#FF2D55", // Pink
-    "#A2845E", // Brown
+    "#F2B8B5", // Soft Red
+    "#F8C0AD", // Soft Orange
+    "#FFE88A", // Soft Yellow
+    "#C4EED0", // Soft Green
+    "#A4ECE4", // Soft Teal
+    "#A4E2FC", // Soft Cyan
+    "#A8C7FA", // Soft Blue
+    "#C5A3E8", // Soft Indigo
+    "#D3B6F0", // Soft Purple
+    "#F5B0C2", // Soft Pink
   ];
 
   for (let i = 0; i < scores.length; i++) {
@@ -55,24 +63,17 @@ export const renderBoxes = (canvasRef, boxes, scores, classes) => {
     // Pick color based on class index
     const color = colors[classIdx % colors.length];
 
-    // 1. Draw bounding box with border shadow
-    ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
-    ctx.shadowBlur = 6;
-    ctx.shadowOffsetX = 1;
-    ctx.shadowOffsetY = 1;
-
+    // 1. Draw thin 2px bounding box
     ctx.strokeStyle = color;
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2;
     ctx.lineJoin = "round";
     ctx.strokeRect(x1, y1, width, height);
 
-    // Reset shadow for label rendering
-    ctx.shadowColor = "transparent";
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
+    // 2. Draw 10% opacity fill inside the box
+    ctx.fillStyle = hexToRgba(color, 0.1);
+    ctx.fillRect(x1, y1, width, height);
 
-    // 2. Draw label pill
+    // 3. Draw rounded label pill with 80% opacity fill
     const labelText = `${klass} - ${scoreText}%`;
     const textWidth = ctx.measureText(labelText).width;
     const labelHeight = fontSize + 6;
@@ -84,13 +85,13 @@ export const renderBoxes = (canvasRef, boxes, scores, classes) => {
     }
 
     // Label background pill
-    ctx.fillStyle = color;
+    ctx.fillStyle = hexToRgba(color, 0.8);
     ctx.beginPath();
-    ctx.roundRect(x1 - 1.5, labelY, textWidth + 10, labelHeight, 4);
+    ctx.roundRect(x1 - 1, labelY, textWidth + 10, labelHeight, 4);
     ctx.fill();
 
     // Label text
     ctx.fillStyle = "#ffffff";
-    ctx.fillText(labelText, x1 + 3, labelY + 3);
+    ctx.fillText(labelText, x1 + 4, labelY + 3);
   }
 };

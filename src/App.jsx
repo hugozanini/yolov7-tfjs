@@ -232,119 +232,147 @@ const App = () => {
     setIsPlaying(!isPlaying);
   };
 
+  // Compute slider percentages for M3 active track styling
+  const confPercent = ((confThreshold - 0.05) / 0.95) * 100;
+  const iouPercent = ((iouThreshold - 0.05) / 0.95) * 100;
+  const maxPercent = ((maxDetections - 10) / 290) * 100;
+
+  // Determine FPS status dot class
+  const getFpsStatusClass = (fpsVal) => {
+    if (fpsVal > 24) return "success";
+    if (fpsVal >= 10) return "warning";
+    return "error";
+  };
+
   return (
     <div className="App">
       <header className="header">
-        <h1>YOLOv7 Real-Time Object Detection</h1>
-        <div className="badge">
-          {loading.loading ? "Loading Web Model..." : "WebGL Accelerated"}
+        <div className="header-title-container">
+          <svg className="gemini-sparkle-svg" viewBox="0 0 24 24">
+            <defs>
+              <linearGradient id="spark-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#7A9FE6" />
+                <stop offset="30%" stopColor="#AEC5EB" />
+                <stop offset="60%" stopColor="#C5A3E8" />
+                <stop offset="100%" stopColor="#F5B0C2" />
+              </linearGradient>
+            </defs>
+            <path d="M12,2L14.8,9.2L22,12L14.8,14.8L12,22L9.2,14.8L2,12L9.2,9.2L12,2Z" />
+          </svg>
+          <h1>YOLOv7 Object Detection Studio</h1>
+        </div>
+        <div className={`header-badge ${loading.loading ? "loading" : ""}`}>
+          <span className={`status-indicator-dot pulse ${loading.loading ? "warning" : "success"}`}></span>
+          {loading.loading ? "Loading Model..." : "WebGL Accelerated"}
         </div>
       </header>
 
       <div className="dashboard-grid">
-        {/* Viewport Card */}
-        <div className="card viewport-card">
-          <div className="card-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-              <circle cx="12" cy="13" r="4"></circle>
-            </svg>
-            Live Camera Feed
-          </div>
+        {/* Left Column: Viewport Section (7 columns) */}
+        <div className="viewport-column">
+          <div className="card viewport-card">
+            <div className="card-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+              Live Camera Feed
+            </div>
 
-          <div className="content-wrapper">
-            {loading.loading && (
-              <Loader>Downloading model: {(loading.progress * 100).toFixed(0)}%</Loader>
-            )}
-            <video
-              autoPlay
-              playsInline
-              muted
-              ref={videoRef}
-              style={{ display: isCameraOn ? "block" : "none" }}
-            />
-            <canvas
-              width={640}
-              height={640}
-              ref={canvasRef}
-              style={{ display: isCameraOn ? "block" : "none" }}
-            />
-            {!isCameraOn && (
-              <div style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "center",
-                color: "#94a3b8",
-                gap: "12px"
-              }}>
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34"></path>
-                  <path d="m23 7-6 6 6 6V7z"></path>
-                  <line x1="1" y1="1" x2="23" y2="23"></line>
-                </svg>
-                <p style={{ fontWeight: 500 }}>Webcam stream is paused</p>
-              </div>
-            )}
-          </div>
-
-          <div className="viewport-controls">
-            <button
-              onClick={togglePlayPause}
-              disabled={!isCameraOn}
-              className={`btn ${isPlaying ? "btn-secondary" : "btn-primary"}`}
-              title={isPlaying ? "Pause detection" : "Play detection"}
-            >
-              {isPlaying ? (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="14" y="4" width="4" height="16" rx="1"></rect>
-                    <rect x="6" y="4" width="4" height="16" rx="1"></rect>
-                  </svg>
-                  Pause Loop
-                </>
-              ) : (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <polygon points="5,3 19,12 5,21"></polygon>
-                  </svg>
-                  Resume Loop
-                </>
+            <div className="content-wrapper">
+              {loading.loading && (
+                <Loader>Downloading model: {(loading.progress * 100).toFixed(0)}%</Loader>
               )}
-            </button>
-
-            <button
-              onClick={toggleCamera}
-              className={`btn ${isCameraOn ? "btn-danger" : "btn-primary"}`}
-            >
-              {isCameraOn ? (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <video
+                autoPlay
+                playsInline
+                muted
+                ref={videoRef}
+                style={{ display: isCameraOn ? "block" : "none" }}
+              />
+              <canvas
+                width={640}
+                height={640}
+                ref={canvasRef}
+                style={{ display: isCameraOn ? "block" : "none" }}
+              />
+              {!isCameraOn && (
+                <div style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  color: "var(--text-muted)",
+                  gap: "12px"
+                }}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34"></path>
+                    <path d="m23 7-6 6 6 6V7z"></path>
                     <line x1="1" y1="1" x2="23" y2="23"></line>
                   </svg>
-                  Stop Cam
-                </>
-              ) : (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                    <circle cx="12" cy="13" r="4"></circle>
-                  </svg>
-                  Start Cam
-                </>
+                  <p style={{ fontWeight: 500 }}>Webcam stream is paused</p>
+                </div>
               )}
-            </button>
+            </div>
+
+            <div className="viewport-controls">
+              <button
+                onClick={togglePlayPause}
+                disabled={!isCameraOn}
+                className={`btn ${isPlaying ? "btn-secondary" : "btn-primary"}`}
+                title={isPlaying ? "Pause detection" : "Play detection"}
+              >
+                {isPlaying ? (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="14" y="4" width="4" height="16" rx="1"></rect>
+                      <rect x="6" y="4" width="4" height="16" rx="1"></rect>
+                    </svg>
+                    Pause Loop
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <polygon points="5,3 19,12 5,21"></polygon>
+                    </svg>
+                    Resume Loop
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={toggleCamera}
+                className={`btn ${isCameraOn ? "btn-danger" : "btn-primary"}`}
+              >
+                {isCameraOn ? (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                    Stop Cam
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                      <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                    Start Cam
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Sidebar panels */}
-        <div className="right-sidebar">
+        {/* Right Column: Control & Stats Console (5 columns) */}
+        <div className="controls-column">
           {/* Performance Dashboard */}
           <div className="card">
             <div className="card-title">
@@ -357,7 +385,10 @@ const App = () => {
             
             <div className="stats-grid">
               <div className="stat-item stat-fps">
-                <span className="stat-label">FPS</span>
+                <span className="stat-label">
+                  <span className={`status-indicator-dot ${getFpsStatusClass(fps)}`}></span>
+                  FPS
+                </span>
                 <span className="stat-val">{fps}</span>
               </div>
               <div className="stat-item stat-latency">
@@ -406,6 +437,9 @@ const App = () => {
                   value={confThreshold}
                   onChange={(e) => setConfThreshold(parseFloat(e.target.value))}
                   className="slider-input"
+                  style={{
+                    background: `linear-gradient(to right, var(--primary) 0%, var(--primary) ${confPercent}%, var(--surface-container) ${confPercent}%, var(--surface-container) 100%)`
+                  }}
                 />
               </div>
 
@@ -422,6 +456,9 @@ const App = () => {
                   value={iouThreshold}
                   onChange={(e) => setIouThreshold(parseFloat(e.target.value))}
                   className="slider-input"
+                  style={{
+                    background: `linear-gradient(to right, var(--primary) 0%, var(--primary) ${iouPercent}%, var(--surface-container) ${iouPercent}%, var(--surface-container) 100%)`
+                  }}
                 />
               </div>
 
@@ -438,6 +475,9 @@ const App = () => {
                   value={maxDetections}
                   onChange={(e) => setMaxDetections(parseInt(e.target.value))}
                   className="slider-input"
+                  style={{
+                    background: `linear-gradient(to right, var(--primary) 0%, var(--primary) ${maxPercent}%, var(--surface-container) ${maxPercent}%, var(--surface-container) 100%)`
+                  }}
                 />
               </div>
             </div>
