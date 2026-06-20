@@ -251,10 +251,10 @@ const App = () => {
           <svg className="gemini-sparkle-svg" viewBox="0 0 24 24">
             <defs>
               <linearGradient id="spark-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#7A9FE6" />
-                <stop offset="30%" stopColor="#AEC5EB" />
-                <stop offset="60%" stopColor="#C5A3E8" />
-                <stop offset="100%" stopColor="#F5B0C2" />
+                <stop offset="0%" stopColor="var(--gradient-stop-1)" />
+                <stop offset="30%" stopColor="var(--gradient-stop-2)" />
+                <stop offset="60%" stopColor="var(--gradient-stop-3)" />
+                <stop offset="100%" stopColor="var(--gradient-stop-4)" />
               </linearGradient>
             </defs>
             <path d="M12,2L14.8,9.2L22,12L14.8,14.8L12,22L9.2,14.8L2,12L9.2,9.2L12,2Z" />

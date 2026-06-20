@@ -124,7 +124,7 @@
 }
 
 .card:hover {
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-subtle-hover);
 }
 
 .card-title {
@@ -211,12 +211,12 @@
 /* M3 Primary Button Style */
 .btn-primary {
   background: var(--primary);
-  color: #131314;
+  color: var(--on-primary);
 }
 
 .btn-primary:hover {
-  background: #C4EED0; /* A soft transition green/blue */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.3);
+  filter: brightness(0.92);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1.5px 3px rgba(0, 0, 0, 0.24);
   transform: translateY(-1px);
 }
 
@@ -226,12 +226,12 @@
 
 /* M3 Tonal Button Style */
 .btn-secondary {
-  background: #2D3135;
+  background: var(--secondary-container);
   color: var(--text-primary);
 }
 
 .btn-secondary:hover {
-  background: #373C41;
+  background: var(--secondary-container-hover);
   transform: translateY(-1px);
 }
 
@@ -370,7 +370,7 @@
 
 .slider-input::-webkit-slider-thumb:hover {
   transform: scale(1.1);
-  box-shadow: 0 0 0 10px rgba(168, 199, 250, 0.16);
+  box-shadow: 0 0 0 10px var(--slider-halo);
 }
 
 .slider-input::-webkit-slider-thumb:active {
@@ -397,7 +397,7 @@
 
 .slider-input::-moz-range-thumb:hover {
   transform: scale(1.1);
-  box-shadow: 0 0 0 10px rgba(168, 199, 250, 0.16);
+  box-shadow: 0 0 0 10px var(--slider-halo);
 }
 
 /* Animations */
@@ -434,5 +434,66 @@
   }
   to {
     opacity: 1;
+  }
+}
+
+/* Extra Responsive Mobile Polish */
+@media (max-width: 576px) {
+  .App {
+    padding: 16px 12px;
+    gap: 20px;
+  }
+  
+  .header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .header-title-container {
+    gap: 8px;
+  }
+  
+  .gemini-sparkle-svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .card {
+    padding: 16px 12px;
+    border-radius: 20px;
+  }
+  
+  .card-title {
+    font-size: 1.05rem;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    gap: 8px;
+  }
+  
+  .viewport-controls {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+  
+  .btn {
+    width: 100%;
+    padding: 12px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .stat-item {
+    padding: 12px;
+    gap: 4px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .stat-val {
+    font-size: 1.3rem;
   }
 }
