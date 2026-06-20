@@ -1,10 +1,10 @@
 .App {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 32px 24px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 16px;
   min-height: 100vh;
 }
 
@@ -15,7 +15,7 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  margin-bottom: 8px;
+  margin-bottom: 0px;
   gap: 20px;
 }
 
@@ -91,6 +91,21 @@
   font-weight: 500;
   letter-spacing: 0.25px;
   transition: all 0.3s ease;
+}
+
+.acceleration-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-container);
+  border: 1px solid var(--border-subtle);
+  color: var(--success);
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .header-badge.loading {
