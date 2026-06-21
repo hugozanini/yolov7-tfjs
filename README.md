@@ -6,7 +6,7 @@ This repository is an implementation of Yolov7 using Tensorflow.js. The code run
 
 <body> 
 <img  alt="Qries"
-src="https://github.com/hugozanini/yolov7-tfjs/blob/master/git-media/yolov7-tfjs-optimized.gif?raw=true"  width="400">
+src="https://github.com/hugozanini/yolov7-tfjs/blob/master/git-media/yolob7-new.gif?raw=true"  width="600">
 </body
 
 
