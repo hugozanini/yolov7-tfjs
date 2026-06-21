@@ -1,65 +1,83 @@
+import * as tf from "@tensorflow/tfjs";
 
-function xywh2xyxy(x){
-    //Convert boxes from [x, y, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
-    var y = [];
-    y[0] = x[0] - x[2] / 2  //top left x
-    y[1] = x[1] - x[3] / 2  //top left y
-    y[2] = x[0] + x[2] / 2  //bottom right x
-    y[3] = x[1] + x[3] / 2  //bottom right y
-    return y;
-  }
+/**
+ * Perform Non-Maximum Suppression on the GPU.
+ * @param {tf.Tensor} res Output tensor from the YOLOv7 model of shape [1, num_boxes, num_classes + 5]
+ * @param {number} confThresh Confidence score threshold
+ * @param {number} iouThresh Intersection Over Union threshold
+ * @param {number} maxDet Maximum number of detections
+ * @returns {Promise<[Float32Array, Float32Array, Int32Array]>} Selected [boxes, scores, classes]
+ */
+export async function non_max_suppression_gpu(res, confThresh = 0.50, iouThresh = 0.45, maxDet = 100) {
+  // Squeeze res to shape [num_boxes, num_classes + 5]
+  const resSqueezed = res.squeeze([0]);
+  const numBoxes = resSqueezed.shape[0];
 
-export function non_max_suppression(res, conf_thresh=0.50, iou_thresh=0.2, max_det = 300){
+  // Boxes: slice first 4 columns [x, y, w, h]
+  const boxes = resSqueezed.slice([0, 0], [numBoxes, 4]);
 
-    // Initialize an empty list to store the selected boxes
-    const selected_detections = [];
+  // Convert boxes from [x_center, y_center, w, h] to [y1, x1, y2, x2] for tf.image.nonMaxSuppressionAsync
+  const [x, y, w, h] = tf.split(boxes, 4, 1);
+  const x1 = tf.sub(x, tf.div(w, 2));
+  const y1 = tf.sub(y, tf.div(h, 2));
+  const x2 = tf.add(x, tf.div(w, 2));
+  const y2 = tf.add(y, tf.div(h, 2));
+  const boxes_yxyx = tf.concat([y1, x1, y2, x2], 1);
 
-    for (let i = 0; i < res.length; i++) {
+  // Scores: conf * max_class_prob
+  const confs = resSqueezed.slice([0, 4], [numBoxes, 1]);
+  const classes = resSqueezed.slice([0, 5], [numBoxes, -1]);
+  const maxClassProbs = classes.max(1, true);
+  const scores = tf.mul(confs, maxClassProbs).squeeze([1]);
+  const classIndices = classes.argMax(1);
 
-        // Check if the box has sufficient score to be selected
-        if (res[i][4] < conf_thresh) {
-            continue;
-            }
+  // Run async NMS on GPU (falls back to WebGL shaders or WASM)
+  const nmsIdx = await tf.image.nonMaxSuppressionAsync(
+    boxes_yxyx,
+    scores,
+    maxDet,
+    iouThresh,
+    confThresh
+  );
 
-        var box = res[i].slice(0,4);
-        const cls_detections = res[i].slice(5);
-        var klass = cls_detections.reduce((imax, x, i, arr) => x > arr[imax] ? i : imax, 0);
-        const score = res[i][klass + 5];
+  // Gather selected box coordinates, scores, and classes
+  const selectedBoxesYxyx = tf.gather(boxes_yxyx, nmsIdx);
+  const selectedScores = tf.gather(scores, nmsIdx);
+  const selectedClasses = tf.gather(classIndices, nmsIdx);
 
-        let object = xywh2xyxy(box);
-        let addBox = true;
+  // Reorder coordinates from [y1, x1, y2, x2] to [x1, y1, x2, y2] for canvas rendering
+  const y1_s = selectedBoxesYxyx.slice([0, 0], [-1, 1]);
+  const x1_s = selectedBoxesYxyx.slice([0, 1], [-1, 1]);
+  const y2_s = selectedBoxesYxyx.slice([0, 2], [-1, 1]);
+  const x2_s = selectedBoxesYxyx.slice([0, 3], [-1, 1]);
+  const selectedBoxesXyxy = tf.concat([x1_s, y1_s, x2_s, y2_s], 1);
 
+  // Transfer data asynchronously to CPU
+  const [boxesData, scoresData, classesData] = await Promise.all([
+    selectedBoxesXyxy.data(),
+    selectedScores.data(),
+    selectedClasses.data()
+  ]);
 
-        // Check for overlap with previously selected boxes
-        for (let j = 0; j < selected_detections.length; j++) {
-            let selectedBox = xywh2xyxy(selected_detections[j]);
+  // Clean up all intermediate GPU tensors
+  tf.dispose([
+    resSqueezed,
+    boxes,
+    x, y, w, h,
+    x1, y1, x2, y2,
+    boxes_yxyx,
+    confs,
+    classes,
+    maxClassProbs,
+    scores,
+    classIndices,
+    nmsIdx,
+    selectedBoxesYxyx,
+    selectedScores,
+    selectedClasses,
+    y1_s, x1_s, y2_s, x2_s,
+    selectedBoxesXyxy
+  ]);
 
-            // Calculate the intersection and union of the two boxes
-            let intersectionXmin = Math.max(object[0], selectedBox[0]);
-            let intersectionYmin = Math.max(object[1], selectedBox[1]);
-            let intersectionXmax = Math.min(object[2], selectedBox[2]);
-            let intersectionYmax = Math.min(object[3], selectedBox[3]);
-            let intersectionWidth = Math.max(0, intersectionXmax - intersectionXmin);
-            let intersectionHeight = Math.max(0, intersectionYmax - intersectionYmin);
-            let intersectionArea = intersectionWidth * intersectionHeight;
-            let boxArea = (object[2] - object[0]) * (object[3] - object[1]);
-            let selectedBoxArea = (selectedBox[2] - selectedBox[0]) * (selectedBox[3] - selectedBox[1]);
-            let unionArea = boxArea + selectedBoxArea - intersectionArea;
-
-            // Calculate the IoU and check if the boxes overlap
-            let iou = intersectionArea / unionArea;
-            if (iou >= iou_thresh) {
-                addBox = false;
-                break;
-        }
-        }
-
-        // Add the box to the selected boxes list if it passed the overlap check
-        if (addBox) {
-            const row =  box.concat(score, klass);
-            selected_detections.push(row);
-        }
-    }
-
-    return selected_detections
+  return [boxesData, scoresData, classesData];
 }
