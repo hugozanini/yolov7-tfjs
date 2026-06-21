@@ -8,6 +8,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 2000, // handle warning on vendor.js bundle size
   },
   server: {
-    allowedHosts: "all"
+    // `true` disables the host check entirely so dynamic CodeSandbox
+    // preview hosts (e.g. *.csb.app) are allowed.
+    allowedHosts: true
   }
 });
